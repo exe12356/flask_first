@@ -1,9 +1,11 @@
-import jwt, datetime, time
+import datetime
+import jwt
 from flask import jsonify
-from models import User, Time
+
 import config
 from common import common
 from db import db
+from models import User, Time
 
 
 class Auth:
@@ -26,7 +28,7 @@ class Auth:
     def decode_token(auth_token):
         try:
             payload = jwt.decode(auth_token, config.SECRET_KEY, algorithm='HS256')
-            if ('data' in payload and 'id' in payload['data']):
+            if 'data' in payload and 'id' in payload['data']:
                 return payload
             else:
                 raise jwt.InvalidTokenError
