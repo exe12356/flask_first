@@ -13,7 +13,7 @@ class Auth:
     def encode_token(user_id, login_time):
         try:
             payload = {
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=10),
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=20),
                 'iat': datetime.datetime.utcnow(),
                 'data': {
                     'id': user_id,

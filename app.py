@@ -1,7 +1,7 @@
 from functools import wraps
 
 from __init__ import app
-from models import User, Nation
+from models import User, Nation, Friend
 from flask import request, jsonify
 from db import db
 from auth.auth import Auth
@@ -17,7 +17,7 @@ def token_required(f):
             return jsonify({'message': 'Token missing'}), 401
         try:
             x = Auth.decode_token(token)
-            current_user = User.query.filter_by(U_id=x['data']['id']).first
+            current_user = x['data']['id']
         except:
             print(x)
             return jsonify({'message': x}), 401
@@ -69,6 +69,8 @@ def login():
 @app.route('/api/getUser', methods=['GET'])
 @token_required
 def get(current_user):
+    # if not current_user:
+    #     return jsonify({'message': 'Not Login'})
     users = User.query.all()
     data = []
     for user in users:
@@ -79,10 +81,21 @@ def get(current_user):
         output['Nation'] = nation.N_Name
         data.append(output)
     return jsonify({'data': data})
-    # if not user:
-    #     jsonify({'message':'No user found'})
-    # output = {}
-    # output
+
+
+@app.route('/api/getFriendsList', methods=['GET'])
+@token_required
+def getFriendsList(current_user):
+    friends = Friend.query.filter_by(F_UserId=current_user).all()
+    print(friends)
+    data = []
+    for friend in friends:
+        nation = friend.User.Nation.N_Name
+        Name = friend.User.U_LoginName
+        output = {'UserName': Name, 'Nation': nation}
+        data.append(output)
+    return jsonify({'data': data})
+
 
 
 if __name__ == '__main__':
