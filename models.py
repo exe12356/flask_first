@@ -6,13 +6,13 @@ from flask_migrate import Migrate,MigrateCommand
 from flask import Flask, request
 import config
 from flask_script import Manager
-from passlib.apps import custom_app_context as pwd_context
-
+# from passlib.apps import custom_app_context as pwd_context
+from werkzeug.security import generate_password_hash, check_password_hash
 app = Flask(__name__)
 app.config.from_object(config)
 db = SQLAlchemy(app)
 
-migrate = Migrate(app,db)
+migrate = Migrate(app, db)
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)
 
@@ -140,23 +140,23 @@ class User(db.Model):
     U_NationId = db.Column(db.ForeignKey('Nation.N_id'), index=True)
     U_ProvinceId = db.Column(db.ForeignKey('Province.P_id'), index=True)
     U_CityId = db.Column(db.ForeignKey('City.C_id'), index=True)
+    U_LoginTime = db.Column(db.DateTime)
 
     City = db.relationship('City', primaryjoin='User.U_CityId == City.C_id', backref='users')
     Nation = db.relationship('Nation', primaryjoin='User.U_NationId == Nation.N_id', backref='users')
     Province = db.relationship('Province', primaryjoin='User.U_ProvinceId == Province.P_id', backref='users')
 
+
     def hash_password(self, password):  # 给密码加密方法
-        self.U_Password = pwd_context.encrypt(password)
+        self.U_Password = generate_password_hash(password)
 
     def verify_password(self, password):  # 验证密码方法
-        return pwd_context.verify(password, self.U_Password)
+        return check_password_hash(self.U_Password, password)
 
-    # def __init__(self, U_LoginName, U_Password):
-    #     self.U_LoginName = U_LoginName
-    #     self.U_Password = U_Password
+class Time(db.Model):
+    __tablename__ = 'Time'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    LoginTime = db.Column(db.DateTime)
+    U_id = db.Column(db.ForeignKey('User.U_id'), primary_key=True)
 
-    def __repr__(self):
-        return '<User %r>' % self.U_LoginName
-
-    def __str__(self):
-        return '<User %s>' % self.U_LoginName
+    User = db.relationship('User', primaryjoin='Time.U_id == User.U_id', backref='times')

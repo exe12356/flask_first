@@ -2,7 +2,7 @@ from __init__ import app
 from models import User
 from flask import request
 from db import db
-
+from auth.auth import Auth
 
 @app.route('/')
 def hello_world():
@@ -21,20 +21,26 @@ def api_hello():
 def register():
     username = request.form.get('username')
     password = request.form.get('password')
-    save = User(U_LoginName=username)
-    save.hash_password(password)
-    db.session.add(save)
-    db.session.commit()
-    return 'success'
+    if User.query.filter_by(U_LoginName=username).first():
+        return 'User existed'
+    else:
+        save = User(U_LoginName=username)
+        save.hash_password(password)
+        db.session.add(save)
+        db.session.commit()
+        return 'success'
 
 
 @app.route('/api/login', methods=['POST'])
 def login():
     username = request.form.get('username')
     password = request.form.get('password')
-    obj = User.query.filter_by(U_LoginName=username).first()
-    print(obj)
-    return 'hello'
+    user = User.query.filter_by(U_LoginName=username).first()
+    if not user or not user.verify_password(password):
+        return 'Login Failed'
+    # print(obj.verify_password(password))
+    else:
+        return Auth.authenticate(Auth, username, password)
 
 
 if __name__ == '__main__':
